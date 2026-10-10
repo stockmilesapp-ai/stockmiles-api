@@ -47,3 +47,52 @@ def test_other_origin_is_rejected(client):
 def test_own_origin_is_accepted(client):
     response = client.post("/auth/logout", headers={"Origin": "http://localhost:5173"})
     assert response.status_code == 204
+
+
+GOOGLE_ORIGIN = {"Origin": "https://accounts.google.com"}
+
+
+def test_redirect_sign_in_sets_session_and_returns_to_app(client, google_user):
+    client.cookies.set("g_csrf_token", "matching-token")
+    response = client.post(
+        "/auth/google/callback",
+        data={"credential": "any", "g_csrf_token": "matching-token"},
+        headers=GOOGLE_ORIGIN,
+        follow_redirects=False,
+    )
+    assert response.status_code == 303
+    assert response.headers["location"] == "/auth/callback?auth=success"
+    assert client.get("/auth/me").status_code == 200
+
+
+def test_redirect_sign_in_rejects_mismatched_csrf_token(client, google_user):
+    client.cookies.set("g_csrf_token", "cookie-token")
+    response = client.post(
+        "/auth/google/callback",
+        data={"credential": "any", "g_csrf_token": "different-token"},
+        headers=GOOGLE_ORIGIN,
+        follow_redirects=False,
+    )
+    assert response.status_code == 303
+    assert response.headers["location"] == "/auth/callback?auth=failed"
+    assert client.get("/auth/me").status_code == 401
+
+
+def test_redirect_sign_in_rejects_missing_csrf_cookie(client, google_user):
+    response = client.post(
+        "/auth/google/callback",
+        data={"credential": "any", "g_csrf_token": "form-token"},
+        follow_redirects=False,
+    )
+    assert response.headers["location"] == "/auth/callback?auth=failed"
+
+
+def test_redirect_sign_in_rejects_forged_credential(client):
+    client.cookies.set("g_csrf_token", "matching-token")
+    response = client.post(
+        "/auth/google/callback",
+        data={"credential": "forged", "g_csrf_token": "matching-token"},
+        follow_redirects=False,
+    )
+    assert response.headers["location"] == "/auth/callback?auth=failed"
+    assert client.get("/auth/me").status_code == 401
