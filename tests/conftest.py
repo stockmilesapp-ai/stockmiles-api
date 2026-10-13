@@ -2,12 +2,28 @@ import asyncio
 import uuid
 
 import pytest
+from alembic.config import Config
 from fastapi.testclient import TestClient
 from sqlalchemy import delete
+
+from alembic import command
+from app.core.settings import settings
+
+if not settings.test_database_url:
+    raise RuntimeError("TEST_DATABASE_URL is not set. Tests never run on DATABASE_URL.")
+if "@localhost:" not in settings.test_database_url:
+    raise RuntimeError("TEST_DATABASE_URL must point at localhost.")
+settings.database_url = settings.test_database_url
 
 from app.db.session import SessionLocal
 from app.main import app
 from app.models import User
+
+
+@pytest.fixture(scope="session", autouse=True)
+def migrated_database():
+    """Build the schema in the test database once, before the first test."""
+    command.upgrade(Config("alembic.ini"), "head")
 
 
 @pytest.fixture

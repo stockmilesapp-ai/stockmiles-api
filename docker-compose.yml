@@ -1,0 +1,11 @@
+services:
+  test-db:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: stockmiles
+      POSTGRES_PASSWORD: stockmiles
+      POSTGRES_DB: stockmiles_test
+    ports:
+      - "54329:5432"
+    tmpfs:
+      - /var/lib/postgresql/data

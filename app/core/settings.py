@@ -5,6 +5,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     database_url: str
+    test_database_url: str | None = None
     google_client_id: str
     session_cookie_name: str = "sm_session"
     session_days: int = 30
