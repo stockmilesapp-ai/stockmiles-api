@@ -6,11 +6,13 @@ from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.api.routes.auth import router as auth_router
+from app.api.routes.codes import router as codes_router
 from app.db.engine import engine
 
 logger = logging.getLogger(__name__)
 app = FastAPI(title="StockMiles API")
 app.include_router(auth_router)
+app.include_router(codes_router)
 
 
 @app.get("/health")
