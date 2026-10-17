@@ -13,7 +13,13 @@ from app.api.deps import CurrentUser, DbSession, check_origin
 from app.core.security import hash_token, new_session_token
 from app.core.settings import settings
 from app.models import User, UserSession
-from app.schemas.auth import GoogleLoginRequest, UserOut
+from app.schemas.auth import (
+    CurrentUserOut,
+    GoogleLoginRequest,
+    PlatformRoleOut,
+    UserOut,
+)
+from app.services.access import get_platform_access
 from app.services.google import verify_google_token
 from app.services.platform import link_platform_member
 
@@ -136,9 +142,19 @@ async def sign_in_with_google_redirect(
     return response
 
 
-@router.get("/me", response_model=UserOut)
-async def read_me(user: CurrentUser) -> User:
-    return user
+@router.get("/me", response_model=CurrentUserOut)
+async def read_me(user: CurrentUser, db: DbSession) -> CurrentUserOut:
+    access = await get_platform_access(db, user)
+    platform_role = None
+    if access.role_key is not None and access.role_name is not None:
+        platform_role = PlatformRoleOut(key=access.role_key, name=access.role_name)
+    return CurrentUserOut(
+        id=user.id,
+        email=user.email,
+        name=user.name,
+        platform_role=platform_role,
+        permissions=access.permissions,
+    )
 
 
 @router.post(
