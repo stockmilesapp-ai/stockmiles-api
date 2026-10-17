@@ -15,6 +15,7 @@ from app.core.settings import settings
 from app.models import User, UserSession
 from app.schemas.auth import GoogleLoginRequest, UserOut
 from app.services.google import verify_google_token
+from app.services.platform import link_platform_member
 
 logger = logging.getLogger(__name__)
 
@@ -56,6 +57,7 @@ async def _sign_in(db: AsyncSession, credential: str) -> tuple[User, str]:
     user.email = claims["email"]
     user.name = claims.get("name", "")
     await db.flush()
+    await link_platform_member(db, user)
 
     token = new_session_token()
     db.add(
