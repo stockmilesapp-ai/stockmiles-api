@@ -8,6 +8,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.base import Base
 
 if TYPE_CHECKING:
+    from app.models.role import Role
     from app.models.store_member import StoreMember
     from app.models.tenant import Tenant
 
@@ -26,8 +27,13 @@ class TenantMember(Base):
     user_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey("users.id", ondelete="CASCADE"), index=True
     )
-    email: Mapped[str] = mapped_column(String(320))
-    role: Mapped[str] = mapped_column(String(32))
+    email: Mapped[str | None] = mapped_column(String(320))
+    full_name: Mapped[str] = mapped_column(String(255))
+    phone: Mapped[str | None] = mapped_column(String(32))
+    role: Mapped[str | None] = mapped_column(String(32))
+    role_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("roles.id", ondelete="RESTRICT"), index=True
+    )
     job_title: Mapped[str | None] = mapped_column(String(64))
     status: Mapped[str] = mapped_column(String(32))
     created_at: Mapped[datetime] = mapped_column(
@@ -43,3 +49,4 @@ class TenantMember(Base):
     store_memberships: Mapped[list["StoreMember"]] = relationship(
         back_populates="member", cascade="all, delete-orphan"
     )
+    role_ref: Mapped["Role | None"] = relationship()

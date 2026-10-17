@@ -28,7 +28,7 @@ class StoreMember(Base):
     member_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("tenant_members.id", ondelete="CASCADE"), index=True
     )
-    role: Mapped[str] = mapped_column(String(32))
+    role: Mapped[str | None] = mapped_column(String(32))
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )

@@ -9,6 +9,7 @@ from app.db.base import Base
 
 if TYPE_CHECKING:
     from app.models.platform_member_tenant import PlatformMemberTenant
+    from app.models.role import Role
 
 
 class PlatformMember(Base):
@@ -19,7 +20,10 @@ class PlatformMember(Base):
     user_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey("users.id", ondelete="CASCADE"), unique=True
     )
-    role: Mapped[str] = mapped_column(String(32))
+    role: Mapped[str | None] = mapped_column(String(32))
+    role_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("roles.id", ondelete="RESTRICT"), index=True
+    )
     tenant_scope: Mapped[str] = mapped_column(String(32))
     status: Mapped[str] = mapped_column(String(32))
     created_at: Mapped[datetime] = mapped_column(
@@ -32,3 +36,4 @@ class PlatformMember(Base):
     tenant_links: Mapped[list["PlatformMemberTenant"]] = relationship(
         back_populates="platform_member", cascade="all, delete-orphan"
     )
+    role_ref: Mapped["Role | None"] = relationship()

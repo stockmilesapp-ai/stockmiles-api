@@ -46,6 +46,21 @@ class PlatformTenantScope(StrEnum):
     ASSIGNED = "assigned"
 
 
+class RoleScope(StrEnum):
+    PLATFORM = "platform"
+    TENANT = "tenant"
+
+
+class RoleKind(StrEnum):
+    CORPORATE = "corporate"
+    STORE = "store"
+
+
+class StoreAccess(StrEnum):
+    ALL = "all"
+    ASSIGNED = "assigned"
+
+
 SYSTEM_CODES: dict[str, type[StrEnum]] = {
     "tenant_type": TenantType,
     "tenant_status": TenantStatus,
