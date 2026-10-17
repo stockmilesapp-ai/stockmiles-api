@@ -52,6 +52,7 @@ Rules for `DATABASE_URL`:
 | Auto-fix lint problems | `uv run ruff check . --fix` |
 | Format code | `uv run ruff format .` |
 | Run tests (needs the test database, see below) | `uv run pytest` |
+| Load seed data (see `app/seeds/README.md`) | `uv run python -m app.seeds.load_platform_members` |
 | Add a dependency | `uv add <package>` |
 | Add a dev-only dependency | `uv add --dev <package>` |
 
