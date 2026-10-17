@@ -1,7 +1,27 @@
 [
   {
     "email": "stockmiles.app@gmail.com",
+    "role": "platform_owner",
+    "tenantScope": "all"
+  },
+  {
+    "email": "tallythreads.hq@gmail.com",
     "role": "platform_admin",
+    "tenantScope": "all"
+  },
+  {
+    "email": "storenode.hq@gmail.com",
+    "role": "platform_admin",
+    "tenantScope": "all"
+  },
+  {
+    "email": "hemitha.obula@gmail.com",
+    "role": "platform_support",
+    "tenantScope": "all"
+  },
+  {
+    "email": "vbreddy.obulareddy@gmail.com",
+    "role": "platform_support",
     "tenantScope": "all"
   }
 ]

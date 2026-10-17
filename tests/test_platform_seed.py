@@ -3,18 +3,25 @@ import uuid
 
 import pytest
 from sqlalchemy import delete, select
+from sqlalchemy.orm import selectinload
 
 from app.core.enums import MemberStatus
 from app.db.session import SessionLocal
 from app.models import PlatformMember
 from app.seeds.load_platform_members import load_platform_members, read_seed_file
 
+OWNER = "owner@example.com"
+
 
 def _entry(email: str, role: str = "platform_admin", scope: str = "all"):
     return {"email": email, "role": role, "tenantScope": scope}
 
 
-def _load(entries):
+def _load(entries, with_owner: bool = True):
+    """Load the entries; every valid file has exactly one owner, so add one."""
+    if with_owner:
+        entries = [_entry(OWNER, role="platform_owner"), *entries]
+
     async def run():
         async with SessionLocal() as db:
             await load_platform_members(db, entries)
@@ -23,10 +30,14 @@ def _load(entries):
 
 
 def _members() -> dict[str, PlatformMember]:
+    """Every platform member except the owner that _load adds."""
+
     async def run():
         async with SessionLocal() as db:
-            rows = await db.scalars(select(PlatformMember))
-            return {member.email: member for member in rows}
+            rows = await db.scalars(
+                select(PlatformMember).options(selectinload(PlatformMember.role_ref))
+            )
+            return {member.email: member for member in rows if member.email != OWNER}
 
     return asyncio.run(run())
 
@@ -45,9 +56,13 @@ def clean_platform_members():
 
 def test_seed_file_is_valid():
     entries = read_seed_file()
-    assert entries, "platform_members.json must list at least one member"
-    _load(entries)
-    assert len(_members()) == len(entries)
+    _load(entries, with_owner=False)
+    members = _members()
+    assert len(members) == len(entries)
+    for entry in entries:
+        role = members[entry["email"]].role_ref
+        assert role is not None
+        assert role.key == entry["role"]
 
 
 def test_loading_twice_keeps_one_row_per_email():
@@ -57,6 +72,14 @@ def test_loading_twice_keeps_one_row_per_email():
     members = _members()
     assert list(members) == [email]
     assert members[email].status == MemberStatus.INVITED
+
+
+def test_role_id_points_at_the_listed_role():
+    _load([_entry("support@example.com", role="platform_support")])
+    member = _members()["support@example.com"]
+    assert member.role_ref is not None
+    assert member.role_ref.key == "platform_support"
+    assert member.role == "platform_support"
 
 
 def test_emails_are_stored_trimmed_and_lowercase():
@@ -82,7 +105,20 @@ def test_a_disabled_member_listed_again_comes_back():
     assert _members()[email].status == MemberStatus.INVITED
 
 
-def test_unknown_role_stops_the_load():
-    with pytest.raises(ValueError):
-        _load([_entry("bad@example.com", role="super_admin")])
+@pytest.mark.parametrize("role", ["super_admin", "owner"])
+def test_unknown_or_tenant_role_stops_the_load(role):
+    with pytest.raises(ValueError, match="Unknown platform role"):
+        _load([_entry("bad@example.com", role=role)])
+    assert _members() == {}
+
+
+def test_a_file_without_an_owner_stops_the_load():
+    with pytest.raises(ValueError, match="exactly one platform_owner"):
+        _load([_entry("admin@example.com")], with_owner=False)
+    assert _members() == {}
+
+
+def test_a_file_with_two_owners_stops_the_load():
+    with pytest.raises(ValueError, match="exactly one platform_owner"):
+        _load([_entry("second@example.com", role="platform_owner")])
     assert _members() == {}

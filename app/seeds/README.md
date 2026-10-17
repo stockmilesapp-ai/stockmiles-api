@@ -12,7 +12,7 @@ StockMiles staff who can use the platform screens. This file is the only way to 
 
 | File | Purpose |
 |---|---|
-| `platform_members.json` | The list: `email`, `role` (`platform_admin`), `tenantScope` (`all` or `assigned`) |
+| `platform_members.json` | The list: `email`, `role` (`platform_owner`, `platform_admin` or `platform_support`), `tenantScope` (`all` or `assigned`) |
 | `load_platform_members.py` | The loader |
 
 ```bash
@@ -21,6 +21,8 @@ uv run python -m app.seeds.load_platform_members
 
 What it does:
 
+- Stops without changing anything unless the file lists exactly one `platform_owner`. The owner is one person and can be set only here.
+- Looks up each `role` in the `roles` table (system platform roles); an unknown role stops the run.
 - Adds each listed email, or updates its role and scope.
 - Sets the status to `invited` until that person first signs in with Google using the email, then `active`.
 - Sets `disabled` on members who are no longer in the file. They are not deleted, so the member access links they created keep their author.
