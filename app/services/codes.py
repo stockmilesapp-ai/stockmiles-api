@@ -5,7 +5,7 @@ from sqlalchemy.orm import contains_eager
 from app.models import Code, CodeValue
 
 
-def _codes_with_shared_values() -> Select[tuple[Code]]:
+def _codes_with_shared_values() -> Select[Code]:
     # One query: LEFT JOIN keeps codes that have no values yet, and the
     # tenant filter sits in the ON clause so it narrows values, not codes.
     # Only shared values (no tenant) for now; a tenant's own values join in

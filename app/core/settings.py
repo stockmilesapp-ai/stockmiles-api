@@ -16,4 +16,6 @@ class Settings(BaseSettings):
     ]
 
 
-settings = Settings()
+# The required fields come from the environment and .env, which the type
+# checker cannot see.
+settings = Settings()  # pyright: ignore[reportCallIssue]
