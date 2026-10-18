@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, status
 
-from app.api.deps import CurrentUser, DbSession
+from app.api.guards.auth import CurrentUser
+from app.db.session import DbSession
 from app.schemas.codes import CodeOut
 from app.services.codes import get_code, list_codes
 

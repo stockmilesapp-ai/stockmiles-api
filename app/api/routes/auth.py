@@ -9,9 +9,10 @@ from fastapi.responses import RedirectResponse
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import CurrentUser, DbSession, check_origin
+from app.api.guards.auth import CurrentUser, check_origin
 from app.core.security import hash_token, new_session_token
 from app.core.settings import settings
+from app.db.session import DbSession
 from app.models import User, UserSession
 from app.schemas.auth import (
     CurrentUserOut,

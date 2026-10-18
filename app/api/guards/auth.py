@@ -1,16 +1,15 @@
+"""Guards every route can use: who is signed in, and where the request came from."""
+
 from datetime import UTC, datetime
 from typing import Annotated
 
 from fastapi import Depends, HTTPException, Request, status
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import hash_token
 from app.core.settings import settings
-from app.db.session import get_db
+from app.db.session import DbSession
 from app.models import User, UserSession
-
-DbSession = Annotated[AsyncSession, Depends(get_db)]
 
 
 async def get_current_user(request: Request, db: DbSession) -> User:
